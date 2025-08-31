@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		1D7D41812E4B356800BFF451 /* Clarity in Frameworks */ = {isa = PBXBuildFile; productRef = 1D7D41802E4B356800BFF451 /* Clarity */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		1D76C4762E401F24009481A3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1D7D41812E4B356800BFF451 /* Clarity in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 				1D76C4652E401F22009481A3 /* PromptPilot */,
 				1D76C4782E401F24009481A3 /* PromptPilotTests */,
 				1D76C4822E401F24009481A3 /* PromptPilotUITests */,
+				1D7D417F2E4B356800BFF451 /* Frameworks */,
 				1D76C4642E401F22009481A3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +96,13 @@
 				1D76C47F2E401F24009481A3 /* PromptPilotUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		1D7D417F2E4B356800BFF451 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +125,7 @@
 			);
 			name = PromptPilot;
 			packageProductDependencies = (
+				1D7D41802E4B356800BFF451 /* Clarity */,
 			);
 			productName = PromptPilot;
 			productReference = 1D76C4632E401F22009481A3 /* PromptPilot.app */;
@@ -195,6 +209,9 @@
 			);
 			mainGroup = 1D76C45A2E401F22009481A3;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				1D7D417E2E4B355700BFF451 /* XCRemoteSwiftPackageReference "clarity-apps" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1D76C4642E401F22009481A3 /* Products */;
 			projectDirPath = "";
@@ -400,6 +417,7 @@
 				DEVELOPMENT_TEAM = A34739LVZN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -409,7 +427,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mergisi.PromptPilot.PromptPilot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -428,6 +446,7 @@
 				DEVELOPMENT_TEAM = A34739LVZN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -437,7 +456,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mergisi.PromptPilot.PromptPilot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -558,6 +577,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		1D7D417E2E4B355700BFF451 /* XCRemoteSwiftPackageReference "clarity-apps" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/microsoft/clarity-apps";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.14;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1D7D41802E4B356800BFF451 /* Clarity */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1D7D417E2E4B355700BFF451 /* XCRemoteSwiftPackageReference "clarity-apps" */;
+			productName = Clarity;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1D76C45B2E401F22009481A3 /* Project object */;
 }

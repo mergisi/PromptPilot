@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		1D7D41812E4B356800BFF451 /* Clarity in Frameworks */ = {isa = PBXBuildFile; productRef = 1D7D41802E4B356800BFF451 /* Clarity */; };
+		1D9887CD2E64FFB600A523E7 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D9887CC2E64FFB600A523E7 /* StoreKit.framework */; };
+		1DAC7CA52E6651B600D98B03 /* PromptPilotStore.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 1DAC7CA42E6651B600D98B03 /* PromptPilotStore.storekit */; };
+		1DAC7CA62E6651B700D98B03 /* Untitled.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DAC7CA32E66517A00D98B03 /* Untitled.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,6 +34,9 @@
 		1D76C4632E401F22009481A3 /* PromptPilot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PromptPilot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D76C4752E401F24009481A3 /* PromptPilotTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PromptPilotTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D76C47F2E401F24009481A3 /* PromptPilotUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PromptPilotUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1D9887CC2E64FFB600A523E7 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		1DAC7CA32E66517A00D98B03 /* Untitled.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Untitled.swift; sourceTree = "<group>"; };
+		1DAC7CA42E6651B600D98B03 /* PromptPilotStore.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = PromptPilotStore.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -57,6 +63,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1D7D41812E4B356800BFF451 /* Clarity in Frameworks */,
+				1D9887CD2E64FFB600A523E7 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -80,6 +87,8 @@
 		1D76C45A2E401F22009481A3 = {
 			isa = PBXGroup;
 			children = (
+				1DAC7CA42E6651B600D98B03 /* PromptPilotStore.storekit */,
+				1DAC7CA32E66517A00D98B03 /* Untitled.swift */,
 				1D76C4652E401F22009481A3 /* PromptPilot */,
 				1D76C4782E401F24009481A3 /* PromptPilotTests */,
 				1D76C4822E401F24009481A3 /* PromptPilotUITests */,
@@ -101,6 +110,7 @@
 		1D7D417F2E4B356800BFF451 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1D9887CC2E64FFB600A523E7 /* StoreKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -229,6 +239,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1DAC7CA52E6651B600D98B03 /* PromptPilotStore.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -253,6 +264,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1DAC7CA62E6651B700D98B03 /* Untitled.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -427,7 +439,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mergisi.PromptPilot.PromptPilot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -456,7 +468,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mergisi.PromptPilot.PromptPilot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

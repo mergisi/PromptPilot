@@ -352,9 +352,11 @@ struct PromptListView: View {
 struct PromptDetailView: View {
     let prompt: Prompt
     @EnvironmentObject var promptStore: PromptStore
+    @EnvironmentObject var premiumManager: PremiumManager
     @Environment(\.dismiss) private var dismiss
     @State private var showCopyConfirmation = false
     @State private var showingCollectionPicker = false
+    @State private var showingPremiumView = false
     
     var body: some View {
         ScrollView {
@@ -489,9 +491,21 @@ struct PromptDetailView: View {
         .sheet(isPresented: $showingCollectionPicker) {
             CollectionPickerSheet(prompt: prompt)
         }
+        .sheet(isPresented: $showingPremiumView) {
+            PremiumView()
+        }
     }
     
     private func toggleFavorite() {
+        let currentFavoriteCount = promptStore.getFavoritePrompts().count
+        let isCurrentlyFavorite = promptStore.isFavorite(promptId: prompt.id)
+        
+        // If trying to add to favorites and would exceed limit
+        if !isCurrentlyFavorite && !premiumManager.canAddFavorite(currentCount: currentFavoriteCount) {
+            showingPremiumView = true
+            return
+        }
+        
         promptStore.toggleFavorite(for: prompt.id)
         
         // Haptic feedback
@@ -583,7 +597,9 @@ struct PromptDetailView: View {
 
 struct FavoritesView: View {
     @EnvironmentObject var promptStore: PromptStore
+    @EnvironmentObject var premiumManager: PremiumManager
     @State private var showingNewCollectionSheet = false
+    @State private var showingPremiumView = false
     
     var body: some View {
         NavigationView {
@@ -662,10 +678,27 @@ struct FavoritesView: View {
             }
             .navigationTitle("Favorites")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        if premiumManager.canCreateCollection(currentCount: promptStore.collections.count) {
+                            showingNewCollectionSheet = true
+                        } else {
+                            showingPremiumView = true
+                        }
+                    }) {
+                        Image(systemName: "plus")
+                            .foregroundColor(.pilotBlue)
+                    }
+                }
+            }
         }
         .background(Color.background)
         .sheet(isPresented: $showingNewCollectionSheet) {
             NewCollectionSheet()
+        }
+        .sheet(isPresented: $showingPremiumView) {
+            PremiumView()
         }
     }
 }
@@ -1126,9 +1159,11 @@ struct TemplateBuilderView: View {
 struct CollectionPickerSheet: View {
     let prompt: Prompt
     @EnvironmentObject var promptStore: PromptStore
+    @EnvironmentObject var premiumManager: PremiumManager
     @Environment(\.presentationMode) var presentationMode
     @State private var showingNewCollectionForm = false
     @State private var showingSuccessMessage = false
+    @State private var showingPremiumView = false
     @State private var selectedCollectionName = ""
     
     var body: some View {
@@ -1220,6 +1255,9 @@ struct CollectionPickerSheet: View {
             .sheet(isPresented: $showingNewCollectionForm) {
                 NewCollectionSheet()
             }
+            .sheet(isPresented: $showingPremiumView) {
+                PremiumView()
+            }
             .overlay(
                 Group {
                     if showingSuccessMessage {
@@ -1246,6 +1284,12 @@ struct CollectionPickerSheet: View {
     
     private func addToCollection(_ collection: Collection) {
         if !collection.promptIds.contains(prompt.id) {
+            // Check collection limit
+            if !premiumManager.canAddToCollection(currentCount: collection.promptIds.count) {
+                showingPremiumView = true
+                return
+            }
+            
             promptStore.addToCollection(collection.id, promptId: prompt.id)
             selectedCollectionName = collection.name
             
@@ -1333,9 +1377,11 @@ struct CollectionDetailView: View {
 
 struct NewCollectionSheet: View {
     @EnvironmentObject var promptStore: PromptStore
+    @EnvironmentObject var premiumManager: PremiumManager
     @State private var name = ""
     @State private var description = ""
     @Environment(\.presentationMode) var presentationMode
+    @State private var showingPremiumView = false
     
     var body: some View {
         NavigationView {
@@ -1352,11 +1398,18 @@ struct NewCollectionSheet: View {
                     presentationMode.wrappedValue.dismiss()
                 },
                 trailing: Button("Create") {
-                    promptStore.createCollection(name: name, description: description)
-                    presentationMode.wrappedValue.dismiss()
+                    if premiumManager.canCreateCollection(currentCount: promptStore.collections.count) {
+                        promptStore.createCollection(name: name, description: description)
+                        presentationMode.wrappedValue.dismiss()
+                    } else {
+                        showingPremiumView = true
+                    }
                 }
                 .disabled(name.isEmpty)
             )
+            .sheet(isPresented: $showingPremiumView) {
+                PremiumView()
+            }
         }
     }
 }
@@ -1729,6 +1782,7 @@ struct ChallengeDetailView: View {
 // MARK: - Content View
 struct ContentView: View {
     @StateObject private var promptStore = PromptStore.shared
+    @StateObject private var premiumManager = PremiumManager.shared
     
     var body: some View {
         TabView {
@@ -1752,6 +1806,7 @@ struct ContentView: View {
         }
         .tint(.pilotBlue)
         .environmentObject(promptStore)
+        .environmentObject(premiumManager)
     }
 }
 

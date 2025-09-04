@@ -22,6 +22,7 @@ struct PromptPilotApp: App {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environmentObject(PremiumManager.shared)
         }
     }
 }

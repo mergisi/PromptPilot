@@ -19,7 +19,7 @@ class PromptStore: ObservableObject {
     private let collectionsKey = "SavedCollections"
     private let hasInitializedKey = "HasInitializedData"
     private let samplePromptsVersionKey = "SamplePromptsVersion"
-    private let currentSamplePromptsVersion = 2 // Increment this when adding new sample prompts
+    private let currentSamplePromptsVersion = 3 // Increment this when adding new sample prompts
     
     private init() {
         loadData()

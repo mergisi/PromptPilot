@@ -334,6 +334,162 @@ extension Prompt {
             category: "Personal",
             tags: ["goals", "planning", "personal development", "productivity"],
             recommendedAI: ["ChatGPT", "Claude", "Gemini"]
+        ),
+        
+        // New Category: Image Generation (Google Nano Banana prompts)
+        // Photorealistic Scenes
+        Prompt(
+            title: "Macro Dewdrop Photography",
+            content: "A macro photograph of a single dewdrop on a blade of grass, reflecting the sunrise. The background is a soft, out-of-focus green field. The lighting is warm and golden.",
+            category: "Image Generation",
+            tags: ["photorealistic", "macro", "nature", "sunrise"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Aerial Forest in Fog",
+            content: "An aerial, top-down shot of a dense, foggy pine forest in the Pacific Northwest. The tips of the tallest trees are just visible through the thick layer of fog.",
+            category: "Image Generation",
+            tags: ["photorealistic", "aerial", "forest", "fog"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Street Musician at Dusk",
+            content: "A candid, street-style photograph of a musician playing a saxophone on a Parisian street corner at dusk. The city lights are beginning to twinkle in the background, creating a beautiful bokeh effect. Shot on a 50mm lens.",
+            category: "Image Generation",
+            tags: ["photorealistic", "street photography", "music", "paris"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Cozy Cabin Library",
+            content: "An interior shot of a rustic, cozy cabin library with a stone fireplace crackling. A leather armchair sits next to the fire, and floor-to-ceiling bookshelves are filled with old books. The only light source is the fire and a small, warm lamp.",
+            category: "Image Generation",
+            tags: ["photorealistic", "interior", "cozy", "library"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Icelandic Beach Scene",
+            content: "A photorealistic close-up of an old, weathered wooden boat pulled up on a black sand beach in Iceland. The sky is overcast and dramatic, and volcanic mountains are visible in the distance.",
+            category: "Image Generation",
+            tags: ["photorealistic", "iceland", "beach", "dramatic"],
+            recommendedAI: ["Gemini"]
+        ),
+        
+        // Image Editing and Manipulation
+        Prompt(
+            title: "Add Glasses to Portrait",
+            content: "Using the provided photo, add a pair of modern, black-rimmed glasses to the man's face.",
+            category: "Image Generation",
+            tags: ["image editing", "portrait", "glasses", "face"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Japanese Garden Background",
+            content: "Change the background of this portrait to a serene Japanese garden with a koi pond and cherry blossom trees.",
+            category: "Image Generation",
+            tags: ["image editing", "background", "japanese garden", "portrait"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Remove Background People",
+            content: "Remove the tourists in the background of this photo, leaving only the main subject in front of the monument.",
+            category: "Image Generation",
+            tags: ["image editing", "remove objects", "cleanup", "monument"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Dramatic Sky Replacement",
+            content: "Replace the daytime sky in this landscape photo with a dramatic, stormy sky with dark clouds.",
+            category: "Image Generation",
+            tags: ["image editing", "sky replacement", "dramatic", "landscape"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Change Dress Color",
+            content: "Change the woman's blue dress to a vibrant emerald green.",
+            category: "Image Generation",
+            tags: ["image editing", "color change", "fashion", "portrait"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Add Coffee Mug",
+            content: "Add a steaming ceramic mug of coffee on the wooden table in the foreground.",
+            category: "Image Generation",
+            tags: ["image editing", "add object", "coffee", "table"],
+            recommendedAI: ["Gemini"]
+        ),
+        
+        // Artistic Styles and Graphics
+        Prompt(
+            title: "Quantum Bean Coffee Logo",
+            content: "A logo for a coffee shop named 'The Quantum Bean,' featuring a stylized atom with a coffee bean as the nucleus. The style should be modern, minimalist, and use a black and white color scheme.",
+            category: "Image Generation",
+            tags: ["logo design", "minimalist", "coffee", "modern"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Van Gogh Style Cat Portrait",
+            content: "A portrait of a cat in the style of a Van Gogh painting, with thick, swirling brushstrokes and a vibrant, expressive color palette.",
+            category: "Image Generation",
+            tags: ["artistic style", "van gogh", "cat", "painting"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Ukiyo-e Futuristic City",
+            content: "A Ukiyo-e woodblock print style illustration of a futuristic city skyline with flying vehicles and holographic advertisements.",
+            category: "Image Generation",
+            tags: ["ukiyo-e", "japanese art", "futuristic", "city"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Noir Detective Comic Panel",
+            content: "A single comic book panel in a gritty, noir art style with high-contrast black and white inks. A detective in a trench coat stands under a single streetlamp on a rainy night. Caption box at the top reads: 'The city never sleeps, and neither did its ghosts.'",
+            category: "Image Generation",
+            tags: ["comic art", "noir", "detective", "black and white"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Retro Mars Travel Poster",
+            content: "A vector art travel poster for Mars. The design should be minimalist with a retro-futuristic aesthetic, featuring the Olympus Mons volcano and two small astronauts. Use a limited color palette of red, orange, and cream.",
+            category: "Image Generation",
+            tags: ["vector art", "travel poster", "mars", "retro-futuristic"],
+            recommendedAI: ["Gemini"]
+        ),
+        
+        // Creative and Imaginative Concepts
+        Prompt(
+            title: "Melting Clock Floating Island",
+            content: "A surrealist scene of a giant, antique pocket watch melting over the edge of a floating island in the sky. Flocks of birds made of paper are flying around it.",
+            category: "Image Generation",
+            tags: ["surreal", "floating island", "melting clock", "fantasy"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Bioluminescent Forest",
+            content: "A bioluminescent forest at night, where the trees, mushrooms, and flowers glow with ethereal blue and green light. A crystal-clear river flows through the scene, reflecting the glowing flora.",
+            category: "Image Generation",
+            tags: ["bioluminescent", "fantasy", "glowing", "forest"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Astronaut with Celestial Map",
+            content: "An astronaut peacefully floating in space, with the Earth reflected in their helmet visor, but instead of continents, the reflection shows a detailed, antique celestial map.",
+            category: "Image Generation",
+            tags: ["space", "astronaut", "celestial", "surreal"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Book Building City",
+            content: "A bustling city street where all the buildings are made of intricately carved books, and the streetlights are glowing bookmarks.",
+            category: "Image Generation",
+            tags: ["fantasy", "books", "city", "imaginative"],
+            recommendedAI: ["Gemini"]
+        ),
+        Prompt(
+            title: "Crystal Glass Elephant",
+            content: "An elephant made entirely of crystalline glass, walking through a desert of shimmering black sand under a sky with two moons.",
+            category: "Image Generation",
+            tags: ["crystal", "elephant", "desert", "fantasy"],
+            recommendedAI: ["Gemini"]
         )
     ]
 }

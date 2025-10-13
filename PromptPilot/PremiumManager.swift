@@ -22,6 +22,7 @@ class PremiumManager: NSObject, ObservableObject {
     static let freeCollectionLimit = 2
     static let freeCollectionPromptLimit = 10
     static let freeFavoriteLimit = 10
+    static let freeImportLimit = 5
     
     private var products: [SKProduct] = []
     
@@ -59,6 +60,15 @@ class PremiumManager: NSObject, ObservableObject {
             print("Monthly product not found")
             return
         }
+        
+        // Track purchase attempt
+        let price = getMonthlyPrice()
+        MixpanelManager.shared.trackPurchaseAttempted(
+            productId: premiumMonthlyProductID,
+            productType: "monthly",
+            price: price
+        )
+        
         purchase(product: product)
     }
     
@@ -67,6 +77,15 @@ class PremiumManager: NSObject, ObservableObject {
             print("Yearly product not found")
             return
         }
+        
+        // Track purchase attempt
+        let price = getYearlyPrice()
+        MixpanelManager.shared.trackPurchaseAttempted(
+            productId: premiumYearlyProductID,
+            productType: "yearly",
+            price: price
+        )
+        
         purchase(product: product)
     }
     
@@ -83,6 +102,7 @@ class PremiumManager: NSObject, ObservableObject {
     
     func restorePurchases() {
         isLoading = true
+        MixpanelManager.shared.trackRestorePurchasesAttempted()
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
     
@@ -97,6 +117,10 @@ class PremiumManager: NSObject, ObservableObject {
     
     func canAddFavorite(currentCount: Int) -> Bool {
         return isPremium || currentCount < Self.freeFavoriteLimit
+    }
+    
+    func canImportPrompt(currentCount: Int) -> Bool {
+        return isPremium || currentCount < Self.freeImportLimit
     }
     
     // MARK: - Product Info
@@ -157,6 +181,17 @@ extension PremiumManager: SKPaymentTransactionObserver {
     }
     
     private func handlePurchased(_ transaction: SKPaymentTransaction) {
+        // Track successful purchase
+        let productId = transaction.payment.productIdentifier
+        let productType = productId.contains("monthly") ? "monthly" : "yearly"
+        let price = productId.contains("monthly") ? getMonthlyPrice() : getYearlyPrice()
+        
+        MixpanelManager.shared.trackPurchaseCompleted(
+            productId: productId,
+            productType: productType,
+            price: price
+        )
+        
         DispatchQueue.main.async {
             self.isPremium = true
             self.savePremiumStatus()
@@ -166,6 +201,9 @@ extension PremiumManager: SKPaymentTransactionObserver {
     }
     
     private func handleRestored(_ transaction: SKPaymentTransaction) {
+        // Track successful restore
+        MixpanelManager.shared.trackRestorePurchasesCompleted(success: true)
+        
         DispatchQueue.main.async {
             self.isPremium = true
             self.savePremiumStatus()
@@ -175,6 +213,19 @@ extension PremiumManager: SKPaymentTransactionObserver {
     }
     
     private func handleFailed(_ transaction: SKPaymentTransaction) {
+        // Track failed purchase
+        let productId = transaction.payment.productIdentifier
+        let productType = productId.contains("monthly") ? "monthly" : "yearly"
+        let errorCode = (transaction.error as? SKError)?.code.rawValue.description ?? "unknown"
+        let errorDescription = transaction.error?.localizedDescription ?? "Unknown error"
+        
+        MixpanelManager.shared.trackPurchaseFailed(
+            productId: productId,
+            productType: productType,
+            errorCode: errorCode,
+            errorDescription: errorDescription
+        )
+        
         DispatchQueue.main.async {
             self.isLoading = false
         }

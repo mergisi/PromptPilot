@@ -10,6 +10,11 @@ import SwiftUI
 struct PremiumView: View {
     @StateObject private var premiumManager = PremiumManager.shared
     @Environment(\.presentationMode) var presentationMode
+    @State private var selectedPlan: PlanType = .yearly
+    
+    enum PlanType {
+        case monthly, yearly
+    }
     
     var body: some View {
         NavigationView {
@@ -33,8 +38,191 @@ struct PremiumView: View {
                     }
                     .padding(.top, 20)
                     
-                    // Features
+                    // Pricing (EN ÜST - En önemli kısım)
+                    if !premiumManager.isPremium {
+                        VStack(spacing: 20) {
+                            VStack(spacing: 8) {
+                                Text("Choose Your Plan")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.pilotBlue)
+                                
+                                Text("Select a plan to start your free trial")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            // Plan Selection
+                            VStack(spacing: 12) {
+                                // Yearly Plan (Recommended)
+                                Button(action: {
+                                    selectedPlan = .yearly
+                                }) {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            HStack {
+                                                Text("Yearly")
+                                                    .font(.headline)
+                                                    .fontWeight(.bold)
+                                                    .foregroundColor(selectedPlan == .yearly ? .white : .primary)
+                                                
+                                                Text("SAVE 85%")
+                                                    .font(.caption)
+                                                    .fontWeight(.bold)
+                                                    .padding(.horizontal, 8)
+                                                    .padding(.vertical, 2)
+                                                    .background(Color.green)
+                                                    .foregroundColor(.white)
+                                                    .cornerRadius(4)
+                                            }
+                                            
+                                            Text("7-Day Free Trial")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundColor(selectedPlan == .yearly ? .white.opacity(0.9) : .pilotBlue)
+                                            
+                                            Text("Then \(premiumManager.getYearlyPrice())/year")
+                                                .font(.subheadline)
+                                                .foregroundColor(selectedPlan == .yearly ? .white.opacity(0.8) : .secondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        // Selection indicator
+                                        ZStack {
+                                            Circle()
+                                                .stroke(selectedPlan == .yearly ? .white : Color.gray, lineWidth: 2)
+                                                .frame(width: 24, height: 24)
+                                            
+                                            if selectedPlan == .yearly {
+                                                Circle()
+                                                    .fill(.white)
+                                                    .frame(width: 12, height: 12)
+                                            }
+                                        }
+                                    }
+                                    .padding()
+                                    .background(selectedPlan == .yearly ? Color.pilotBlue : Color.gray.opacity(0.05))
+                                    .cornerRadius(12)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(selectedPlan == .yearly ? Color.pilotBlue : Color.gray.opacity(0.3), lineWidth: selectedPlan == .yearly ? 2 : 1)
+                                    )
+                                    .scaleEffect(selectedPlan == .yearly ? 1.02 : 1.0)
+                                    .animation(.easeInOut(duration: 0.2), value: selectedPlan)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                // Monthly Plan
+                                Button(action: {
+                                    selectedPlan = .monthly
+                                }) {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            Text("Monthly")
+                                                .font(.headline)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(selectedPlan == .monthly ? .white : .primary)
+                                            
+                                            Text("7-Day Free Trial")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundColor(selectedPlan == .monthly ? .white.opacity(0.9) : .pilotBlue)
+                                            
+                                            Text("Then \(premiumManager.getMonthlyPrice())/month")
+                                                .font(.subheadline)
+                                                .foregroundColor(selectedPlan == .monthly ? .white.opacity(0.8) : .secondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        // Selection indicator
+                                        ZStack {
+                                            Circle()
+                                                .stroke(selectedPlan == .monthly ? .white : Color.gray, lineWidth: 2)
+                                                .frame(width: 24, height: 24)
+                                            
+                                            if selectedPlan == .monthly {
+                                                Circle()
+                                                    .fill(.white)
+                                                    .frame(width: 12, height: 12)
+                                            }
+                                        }
+                                    }
+                                    .padding()
+                                    .background(selectedPlan == .monthly ? Color.pilotBlue : Color.gray.opacity(0.05))
+                                    .cornerRadius(12)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(selectedPlan == .monthly ? Color.pilotBlue : Color.gray.opacity(0.3), lineWidth: selectedPlan == .monthly ? 2 : 1)
+                                    )
+                                    .scaleEffect(selectedPlan == .monthly ? 1.02 : 1.0)
+                                    .animation(.easeInOut(duration: 0.2), value: selectedPlan)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            
+                            // Start Trial Button
+                            Button(action: {
+                                if selectedPlan == .yearly {
+                                    premiumManager.purchaseYearly()
+                                } else {
+                                    premiumManager.purchaseMonthly()
+                                }
+                            }) {
+                                HStack {
+                                    if premiumManager.isLoading {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                            .scaleEffect(0.8)
+                                    }
+                                    
+                                    Text(premiumManager.isLoading ? "Starting Trial..." : "Start Free Trial")
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [Color.green, Color.green.opacity(0.8)]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                                .shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
+                            }
+                            .disabled(premiumManager.isLoading)
+                            
+                            Text("Cancel anytime • No commitment")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                            
+                            // Legal Links
+                            HStack(spacing: 20) {
+                                Link("Terms of Use", destination: URL(string: "https://mergisi.github.io/PromptPilot/terms-of-use.html")!)
+                                    .font(.caption)
+                                    .foregroundColor(.pilotBlue)
+                                
+                                Link("Privacy Policy", destination: URL(string: "https://mergisi.github.io/PromptPilot/privacy-policy.html")!)
+                                    .font(.caption)
+                                    .foregroundColor(.pilotBlue)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    
+                    // Features (Pricing'den sonra)
                     VStack(spacing: 16) {
+                        Text("What You Get")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.pilotBlue)
+                            .padding(.top, 8)
+                        
                         PremiumFeatureRow(
                             icon: "infinity",
                             title: "Unlimited Collections",
@@ -46,6 +234,20 @@ struct PremiumView: View {
                             icon: "heart.fill",
                             title: "Unlimited Favorites",
                             description: "Save all your favorite prompts",
+                            isHighlighted: true
+                        )
+                        
+                        PremiumFeatureRow(
+                            icon: "plus.circle.fill",
+                            title: "Unlimited Imports",
+                            description: "Import prompts from anywhere without limits",
+                            isHighlighted: true
+                        )
+                        
+                        PremiumFeatureRow(
+                            icon: "wand.and.stars",
+                            title: "Custom Templates",
+                            description: "Create and customize prompt templates",
                             isHighlighted: true
                         )
                         
@@ -72,39 +274,78 @@ struct PremiumView: View {
                                 .font(.headline)
                                 .foregroundColor(.secondary)
                             
-                            HStack {
-                                VStack {
-                                    Text("\(PremiumManager.freeCollectionLimit)")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.pilotBlue)
-                                    Text("Collections")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                            VStack(spacing: 12) {
+                                HStack {
+                                    VStack {
+                                        Text("\(PremiumManager.freeCollectionLimit)")
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.pilotBlue)
+                                        Text("Collections")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    VStack {
+                                        Text("\(PremiumManager.freeFavoriteLimit)")
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.pilotBlue)
+                                        Text("Favorites")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    VStack {
+                                        Text("\(PremiumManager.freeCollectionPromptLimit)")
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.pilotBlue)
+                                        Text("Per Collection")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                                 
-                                Spacer()
-                                
-                                VStack {
-                                    Text("\(PremiumManager.freeFavoriteLimit)")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.pilotBlue)
-                                    Text("Favorites")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                VStack {
-                                    Text("\(PremiumManager.freeCollectionPromptLimit)")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.pilotBlue)
-                                    Text("Per Collection")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                // Second row for imports
+                                HStack {
+                                    VStack {
+                                        Text("\(PremiumManager.freeImportLimit)")
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.pilotBlue)
+                                        Text("Imports")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    VStack {
+                                        Text("∞")
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.gray)
+                                        Text("Templates")
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    VStack {
+                                        Text("∞")
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.gray)
+                                        Text("Premium")
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
                                 }
                             }
                             .padding()
@@ -114,112 +355,8 @@ struct PremiumView: View {
                         .padding(.horizontal)
                     }
                     
-                    // Pricing
-                    if !premiumManager.isPremium {
-                        VStack(spacing: 16) {
-                            Text("Choose Your Plan")
-                                .font(.headline)
-                                .foregroundColor(.pilotBlue)
-                            
-                            // Yearly Plan (Recommended)
-                            Button(action: {
-                                premiumManager.purchaseYearly()
-                            }) {
-                                VStack(spacing: 8) {
-                                    HStack {
-                                        VStack(alignment: .leading) {
-                                            HStack {
-                                                Text("Yearly")
-                                                    .font(.headline)
-                                                    .fontWeight(.bold)
-                                                
-                                                                                Text("SAVE 85%")
-                                    .font(.caption)
-                                    .fontWeight(.bold)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 2)
-                                    .background(Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(4)
-                                            }
-                                            
-                                                                        Text("Start 7-Day Free Trial")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .foregroundColor(.pilotBlue)
-                            
-                            Text("Then \(premiumManager.getYearlyPrice())/year")
-                                .font(.subheadline)
-                                .foregroundColor(.primary)
-                            
-                            Text("Cancel anytime")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .font(.title2)
-                                            .foregroundColor(.pilotBlue)
-                                    }
-                                }
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.pilotBlue.opacity(0.1))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.pilotBlue, lineWidth: 2)
-                                )
-                                .cornerRadius(12)
-                            }
-                            .foregroundColor(.primary)
-                            .disabled(premiumManager.isLoading)
-                            
-                            // Monthly Plan
-                            Button(action: {
-                                premiumManager.purchaseMonthly()
-                            }) {
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        Text("Monthly")
-                                            .font(.headline)
-                                            .fontWeight(.bold)
-                                        
-                                        Text("Start 7-Day Free Trial")
-                                            .font(.title3)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.pilotBlue)
-                                        
-                                        Text("Then \(premiumManager.getMonthlyPrice())/month")
-                                            .font(.subheadline)
-                                            .foregroundColor(.primary)
-                                        
-                                        Text("Cancel anytime")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                    
-                                    Spacer()
-                                }
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.gray.opacity(0.1))
-                                .cornerRadius(12)
-                            }
-                            .foregroundColor(.primary)
-                            .disabled(premiumManager.isLoading)
-                        }
-                        .padding(.horizontal)
-                        
-                        // Restore Purchases
-                        Button("Restore Purchases") {
-                            premiumManager.restorePurchases()
-                        }
-                        .foregroundColor(.pilotBlue)
-                        .disabled(premiumManager.isLoading)
-                    } else {
-                        // Already Premium
+                    // Already Premium State
+                    if premiumManager.isPremium {
                         VStack(spacing: 16) {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 60))
@@ -242,34 +379,13 @@ struct PremiumView: View {
                             .padding()
                     }
                     
-                    // Legal Links
-                    VStack(spacing: 8) {
-                        HStack {
-                            Button("Terms of Use") {
-                                if let url = URL(string: "https://mergisi.github.io/PromptPilot/terms-of-use.html") {
-                                    UIApplication.shared.open(url)
-                                }
-                            }
-                            .foregroundColor(.pilotBlue)
-                            
-                            Text("•")
-                                .foregroundColor(.secondary)
-                            
-                            Button("Privacy Policy") {
-                                if let url = URL(string: "https://mergisi.github.io/PromptPilot/privacy-policy.html") {
-                                    UIApplication.shared.open(url)
-                                }
-                            }
-                            .foregroundColor(.pilotBlue)
-                        }
-                        .font(.caption)
-                        
-                        Text("Subscriptions auto-renew unless cancelled 24h before period ends")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
+                    
+                    // Restore Purchases (always show for troubleshooting)  
+                    Button("Restore Purchases") {
+                        premiumManager.restorePurchases()
                     }
-                    .padding(.horizontal)
+                    .foregroundColor(.pilotBlue)
+                    .disabled(premiumManager.isLoading)
                     
                     Spacer(minLength: 20)
                 }
@@ -277,14 +393,19 @@ struct PremiumView: View {
             .navigationTitle("Premium")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(
-                trailing: Button("Done") {
+                leading: Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
                 }
+                .foregroundColor(.pilotBlue)
             )
+            .onAppear {
+                MixpanelManager.shared.trackPremiumViewShown(source: "navigation")
+            }
         }
     }
 }
 
+// MARK: - Premium Feature Row
 struct PremiumFeatureRow: View {
     let icon: String
     let title: String
@@ -301,27 +422,25 @@ struct PremiumFeatureRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.headline)
+                    .fontWeight(.semibold)
                     .foregroundColor(.primary)
                 
                 Text(description)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+                    .multilineTextAlignment(.leading)
             }
             
             Spacer()
             
             if isHighlighted {
-                Image(systemName: "star.fill")
-                    .font(.caption)
-                    .foregroundColor(.yellow)
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.green)
             }
         }
         .padding()
-        .background(isHighlighted ? Color.lightBlue.opacity(0.1) : Color.clear)
+        .background(isHighlighted ? Color.pilotBlue.opacity(0.05) : Color.clear)
         .cornerRadius(12)
     }
-}
-
-#Preview {
-    PremiumView()
 }

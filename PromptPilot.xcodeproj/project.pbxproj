@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1D7D41812E4B356800BFF451 /* Clarity in Frameworks */ = {isa = PBXBuildFile; productRef = 1D7D41802E4B356800BFF451 /* Clarity */; };
+		1D7D41842E4B356900BFF451 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = 1D7D41832E4B356900BFF451 /* Mixpanel */; };
 		1D9887CD2E64FFB600A523E7 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D9887CC2E64FFB600A523E7 /* StoreKit.framework */; };
 		1DAC7CA52E6651B600D98B03 /* PromptPilotStore.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 1DAC7CA42E6651B600D98B03 /* PromptPilotStore.storekit */; };
 		1DAC7CA62E6651B700D98B03 /* Untitled.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DAC7CA32E66517A00D98B03 /* Untitled.swift */; };
@@ -63,6 +64,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1D7D41812E4B356800BFF451 /* Clarity in Frameworks */,
+				1D7D41842E4B356900BFF451 /* Mixpanel in Frameworks */,
 				1D9887CD2E64FFB600A523E7 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -136,6 +138,7 @@
 			name = PromptPilot;
 			packageProductDependencies = (
 				1D7D41802E4B356800BFF451 /* Clarity */,
+				1D7D41832E4B356900BFF451 /* Mixpanel */,
 			);
 			productName = PromptPilot;
 			productReference = 1D76C4632E401F22009481A3 /* PromptPilot.app */;
@@ -221,6 +224,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				1D7D417E2E4B355700BFF451 /* XCRemoteSwiftPackageReference "clarity-apps" */,
+				1D7D41822E4B356900BFF451 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1D76C4642E401F22009481A3 /* Products */;
@@ -439,7 +443,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mergisi.PromptPilot.PromptPilot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -468,7 +472,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mergisi.PromptPilot.PromptPilot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -599,6 +603,14 @@
 				minimumVersion = 3.0.14;
 			};
 		};
+		1D7D41822E4B356900BFF451 /* XCRemoteSwiftPackageReference "mixpanel-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mixpanel/mixpanel-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.2.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -606,6 +618,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1D7D417E2E4B355700BFF451 /* XCRemoteSwiftPackageReference "clarity-apps" */;
 			productName = Clarity;
+		};
+		1D7D41832E4B356900BFF451 /* Mixpanel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1D7D41822E4B356900BFF451 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
+			productName = Mixpanel;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -19,7 +19,8 @@ class PromptStore: ObservableObject {
     private let collectionsKey = "SavedCollections"
     private let hasInitializedKey = "HasInitializedData"
     private let samplePromptsVersionKey = "SamplePromptsVersion"
-    private let currentSamplePromptsVersion = 3 // Increment this when adding new sample prompts
+    private let importedPromptsCountKey = "ImportedPromptsCount"
+    private let currentSamplePromptsVersion = 5 // Increment this when adding new sample prompts
     
     private init() {
         loadData()
@@ -71,8 +72,24 @@ class PromptStore: ObservableObject {
         saveData()
     }
     
+    // MARK: - Import Tracking
+    func getImportedPromptsCount() -> Int {
+        return UserDefaults.standard.integer(forKey: importedPromptsCountKey)
+    }
+    
+    func incrementImportedPromptsCount() {
+        let currentCount = getImportedPromptsCount()
+        UserDefaults.standard.set(currentCount + 1, forKey: importedPromptsCountKey)
+    }
+    
+    func addImportedPrompt(_ prompt: Prompt) {
+        prompts.append(prompt)
+        incrementImportedPromptsCount()
+        saveData()
+    }
+    
     // MARK: - Persistence
-    private func saveData() {
+    func saveData() {
         // Save prompts
         if let encoded = try? JSONEncoder().encode(prompts) {
             UserDefaults.standard.set(encoded, forKey: promptsKey)

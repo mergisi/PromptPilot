@@ -51,9 +51,11 @@ extension Color {
 // MARK: - Tab Views
 struct PromptsView: View {
     @EnvironmentObject var promptStore: PromptStore
+    @EnvironmentObject var premiumManager: PremiumManager
     @State private var searchText = ""
     @State private var selectedFilter: FilterOption = .all
     @State private var showingFilterSheet = false
+    @State private var showingImportSheet = false
     
     private var filteredPrompts: [Prompt] {
         var prompts = promptStore.prompts
@@ -153,10 +155,23 @@ struct PromptsView: View {
             }
             .navigationTitle("Prompts")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showingImportSheet = true }) {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.pilotBlue)
+                    }
+                }
+            }
         }
         .background(Color.background)
         .sheet(isPresented: $showingFilterSheet) {
             FilterSheetView(selectedFilter: $selectedFilter, categories: categories)
+        }
+        .sheet(isPresented: $showingImportSheet) {
+            ImportPromptView()
+                .environmentObject(promptStore)
+                .environmentObject(premiumManager)
         }
     }
 }
@@ -240,7 +255,7 @@ struct FilterSheetView: View {
     @Binding var selectedFilter: FilterOption
     let categories: [String]
     @Environment(\.presentationMode) var presentationMode
-    
+
     var body: some View {
         NavigationView {
             List {
@@ -288,6 +303,14 @@ struct FilterSheetView: View {
                         isSelected: selectedFilter == .aiModel("Claude")
                     ) {
                         selectedFilter = .aiModel("Claude")
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                    
+                    FilterRowView(
+                        title: "Sora 2",
+                        isSelected: selectedFilter == .aiModel("Sora 2")
+                    ) {
+                        selectedFilter = .aiModel("Sora 2")
                         presentationMode.wrappedValue.dismiss()
                     }
                 }
@@ -352,9 +375,11 @@ struct PromptListView: View {
 struct PromptDetailView: View {
     let prompt: Prompt
     @EnvironmentObject var promptStore: PromptStore
+    @EnvironmentObject var premiumManager: PremiumManager
     @Environment(\.dismiss) private var dismiss
     @State private var showCopyConfirmation = false
     @State private var showingCollectionPicker = false
+    @State private var showingPremiumView = false
     
     var body: some View {
         ScrollView {
@@ -453,8 +478,8 @@ struct PromptDetailView: View {
         .background(Color.background)
         .navigationTitle("Prompt Details")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
                 HStack {
                     Button(action: toggleFavorite) {
                         Image(systemName: promptStore.isFavorite(promptId: prompt.id) ? "heart.fill" : "heart")
@@ -489,9 +514,31 @@ struct PromptDetailView: View {
         .sheet(isPresented: $showingCollectionPicker) {
             CollectionPickerSheet(prompt: prompt)
         }
+        .sheet(isPresented: $showingPremiumView) {
+            PremiumView()
+        }
     }
     
     private func toggleFavorite() {
+        let currentFavoriteCount = promptStore.getFavoritePrompts().count
+        let isCurrentlyFavorite = promptStore.isFavorite(promptId: prompt.id)
+        
+        // If trying to add to favorites and would exceed limit
+        if !isCurrentlyFavorite && !premiumManager.canAddFavorite(currentCount: currentFavoriteCount) {
+            // Track limit reached
+            MixpanelManager.shared.trackFavoriteLimitReached(currentCount: currentFavoriteCount)
+            showingPremiumView = true
+            return
+        }
+        
+        // Track favorite toggle
+        MixpanelManager.shared.trackFavoriteToggled(
+            promptId: prompt.id.uuidString,
+            promptTitle: prompt.title,
+            category: prompt.category,
+            isAdding: !isCurrentlyFavorite
+        )
+        
         promptStore.toggleFavorite(for: prompt.id)
         
         // Haptic feedback
@@ -501,6 +548,13 @@ struct PromptDetailView: View {
     
     private func copyToClipboard() {
         UIPasteboard.general.string = prompt.content
+        
+        // Track prompt copied
+        MixpanelManager.shared.trackPromptCopied(
+            promptId: prompt.id.uuidString,
+            promptTitle: prompt.title,
+            category: prompt.category
+        )
         
         // Haptic feedback
         let impact = UIImpactFeedbackGenerator(style: .medium)
@@ -520,6 +574,14 @@ struct PromptDetailView: View {
     private func openInChatGPT() {
         let encodedPrompt = prompt.content.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         
+        // Track prompt shared to AI
+        MixpanelManager.shared.trackPromptSharedToAI(
+            promptId: prompt.id.uuidString,
+            promptTitle: prompt.title,
+            category: prompt.category,
+            aiModel: "ChatGPT"
+        )
+        
         // Try ChatGPT app first
         if let appURL = URL(string: "chatgpt://chat?prompt=\(encodedPrompt)"),
            UIApplication.shared.canOpenURL(appURL) {
@@ -535,6 +597,14 @@ struct PromptDetailView: View {
     
     private func openInClaude() {
         let encodedPrompt = prompt.content.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        
+        // Track prompt shared to AI
+        MixpanelManager.shared.trackPromptSharedToAI(
+            promptId: prompt.id.uuidString,
+            promptTitle: prompt.title,
+            category: prompt.category,
+            aiModel: "Claude"
+        )
         
         // Copy to clipboard for easy pasting
         UIPasteboard.general.string = prompt.content
@@ -557,6 +627,14 @@ struct PromptDetailView: View {
     
     private func openInGemini() {
         let encodedPrompt = prompt.content.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        
+        // Track prompt shared to AI
+        MixpanelManager.shared.trackPromptSharedToAI(
+            promptId: prompt.id.uuidString,
+            promptTitle: prompt.title,
+            category: prompt.category,
+            aiModel: "Gemini"
+        )
         
         // Copy to clipboard for easy pasting
         UIPasteboard.general.string = prompt.content
@@ -583,7 +661,9 @@ struct PromptDetailView: View {
 
 struct FavoritesView: View {
     @EnvironmentObject var promptStore: PromptStore
+    @EnvironmentObject var premiumManager: PremiumManager
     @State private var showingNewCollectionSheet = false
+    @State private var showingPremiumView = false
     
     var body: some View {
         NavigationView {
@@ -662,10 +742,29 @@ struct FavoritesView: View {
             }
             .navigationTitle("Favorites")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        if premiumManager.canCreateCollection(currentCount: promptStore.collections.count) {
+                            showingNewCollectionSheet = true
+                        } else {
+                            // Track collection limit reached
+                            MixpanelManager.shared.trackCollectionLimitReached(currentCount: promptStore.collections.count)
+                            showingPremiumView = true
+                        }
+                    }) {
+                        Image(systemName: "plus")
+                            .foregroundColor(.pilotBlue)
+                    }
+                }
+            }
         }
         .background(Color.background)
         .sheet(isPresented: $showingNewCollectionSheet) {
             NewCollectionSheet()
+        }
+        .sheet(isPresented: $showingPremiumView) {
+            PremiumView()
         }
     }
 }
@@ -895,6 +994,8 @@ struct TemplateBuilderView: View {
     let template: Template
     @State private var fieldValues: [String: String] = [:]
     @State private var showingCopyConfirmation = false
+    @State private var showingPremiumSheet = false
+    @EnvironmentObject var premiumManager: PremiumManager
     
     var body: some View {
         ScrollView {
@@ -922,22 +1023,72 @@ struct TemplateBuilderView: View {
                 
                 // Input Fields
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Fill in the fields:")
-                        .font(.headline)
-                        .fontWeight(.semibold)
+                    HStack {
+                        Text("Fill in the fields:")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        if !premiumManager.isPremium {
+                            Spacer()
+                            Button(action: { showingPremiumSheet = true }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "crown.fill")
+                                        .font(.caption)
+                                    Text("Premium")
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.yellow.opacity(0.2))
+                                .foregroundColor(.orange)
+                                .cornerRadius(6)
+                            }
+                        }
+                    }
                     
-                    ForEach(template.placeholders, id: \.self) { placeholder in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(placeholder.replacingOccurrences(of: "_", with: " ").capitalized)
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundColor(.primary)
-                            
-                            TextField("Enter \(placeholder.lowercased())", text: Binding(
-                                get: { fieldValues[placeholder] ?? "" },
-                                set: { fieldValues[placeholder] = $0 }
-                            ))
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                    if premiumManager.isPremium {
+                        ForEach(template.placeholders, id: \.self) { placeholder in
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(placeholder.replacingOccurrences(of: "_", with: " ").capitalized)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                                
+                                TextField("Enter \(placeholder.lowercased())", text: Binding(
+                                    get: { fieldValues[placeholder] ?? "" },
+                                    set: { fieldValues[placeholder] = $0 }
+                                ))
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                            }
+                        }
+                    } else {
+                        // Show placeholder fields for non-premium users
+                        ForEach(template.placeholders, id: \.self) { placeholder in
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(placeholder.replacingOccurrences(of: "_", with: " ").capitalized)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.secondary)
+                                
+                                Button(action: { showingPremiumSheet = true }) {
+                                    HStack {
+                                        Text("Tap to unlock custom templates")
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Image(systemName: "lock.fill")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding()
+                                    .background(Color.gray.opacity(0.1))
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -948,61 +1099,97 @@ struct TemplateBuilderView: View {
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    Text(buildPrompt())
-                        .font(.body)
-                        .padding()
-                        .background(Color.pilotBlue.opacity(0.05))
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.pilotBlue.opacity(0.2), lineWidth: 1)
-                        )
+                    if premiumManager.isPremium {
+                        Text(buildPrompt())
+                            .font(.body)
+                            .padding()
+                            .background(Color.pilotBlue.opacity(0.05))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.pilotBlue.opacity(0.2), lineWidth: 1)
+                            )
+                    } else {
+                        VStack(spacing: 12) {
+                            Text(template.template)
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .padding()
+                                .background(Color.gray.opacity(0.05))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                )
+                            
+                            Button(action: { showingPremiumSheet = true }) {
+                                HStack {
+                                    Image(systemName: "wand.and.stars")
+                                    Text("Unlock Custom Templates")
+                                        .fontWeight(.semibold)
+                                }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [Color.orange, Color.yellow]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .cornerRadius(12)
+                            }
+                        }
+                    }
                 }
                 
                 // Action Buttons
-                VStack(spacing: 12) {
-                    Button(action: copyPrompt) {
-                        HStack {
-                            Image(systemName: "doc.on.doc")
-                            Text("Copy Prompt")
-                                .fontWeight(.semibold)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.pilotBlue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                    }
-                    
-                    HStack(spacing: 12) {
-                        Button(action: openInChatGPT) {
-                            Text("ChatGPT")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Color.lightBlue)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
+                if premiumManager.isPremium {
+                    VStack(spacing: 12) {
+                        Button(action: copyPrompt) {
+                            HStack {
+                                Image(systemName: "doc.on.doc")
+                                Text("Copy Prompt")
+                                    .fontWeight(.semibold)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.pilotBlue)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
                         }
                         
-                        Button(action: openInClaude) {
-                            Text("Claude")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Color.orange.opacity(0.9))
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                        }
-                        
-                        Button(action: openInGemini) {
-                            Text("Gemini")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Color.purple.opacity(0.9))
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
+                        HStack(spacing: 12) {
+                            Button(action: openInChatGPT) {
+                                Text("ChatGPT")
+                                    .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(Color.lightBlue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                            }
+                            
+                            Button(action: openInClaude) {
+                                Text("Claude")
+                                    .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(Color.orange.opacity(0.9))
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                            }
+                            
+                            Button(action: openInGemini) {
+                                Text("Gemini")
+                                    .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(Color.purple.opacity(0.9))
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                            }
                         }
                     }
                 }
@@ -1030,6 +1217,10 @@ struct TemplateBuilderView: View {
                 }
             }
         )
+        .sheet(isPresented: $showingPremiumSheet) {
+            PremiumView()
+                .environmentObject(premiumManager)
+        }
     }
     
     private func buildPrompt() -> String {
@@ -1126,9 +1317,11 @@ struct TemplateBuilderView: View {
 struct CollectionPickerSheet: View {
     let prompt: Prompt
     @EnvironmentObject var promptStore: PromptStore
+    @EnvironmentObject var premiumManager: PremiumManager
     @Environment(\.presentationMode) var presentationMode
     @State private var showingNewCollectionForm = false
     @State private var showingSuccessMessage = false
+    @State private var showingPremiumView = false
     @State private var selectedCollectionName = ""
     
     var body: some View {
@@ -1220,6 +1413,9 @@ struct CollectionPickerSheet: View {
             .sheet(isPresented: $showingNewCollectionForm) {
                 NewCollectionSheet()
             }
+            .sheet(isPresented: $showingPremiumView) {
+                PremiumView()
+            }
             .overlay(
                 Group {
                     if showingSuccessMessage {
@@ -1246,6 +1442,12 @@ struct CollectionPickerSheet: View {
     
     private func addToCollection(_ collection: Collection) {
         if !collection.promptIds.contains(prompt.id) {
+            // Check collection limit
+            if !premiumManager.canAddToCollection(currentCount: collection.promptIds.count) {
+                showingPremiumView = true
+                return
+            }
+            
             promptStore.addToCollection(collection.id, promptId: prompt.id)
             selectedCollectionName = collection.name
             
@@ -1333,9 +1535,11 @@ struct CollectionDetailView: View {
 
 struct NewCollectionSheet: View {
     @EnvironmentObject var promptStore: PromptStore
+    @EnvironmentObject var premiumManager: PremiumManager
     @State private var name = ""
     @State private var description = ""
     @Environment(\.presentationMode) var presentationMode
+    @State private var showingPremiumView = false
     
     var body: some View {
         NavigationView {
@@ -1352,11 +1556,18 @@ struct NewCollectionSheet: View {
                     presentationMode.wrappedValue.dismiss()
                 },
                 trailing: Button("Create") {
-                    promptStore.createCollection(name: name, description: description)
-                    presentationMode.wrappedValue.dismiss()
+                    if premiumManager.canCreateCollection(currentCount: promptStore.collections.count) {
+                        promptStore.createCollection(name: name, description: description)
+                        presentationMode.wrappedValue.dismiss()
+                    } else {
+                        showingPremiumView = true
+                    }
                 }
                 .disabled(name.isEmpty)
             )
+            .sheet(isPresented: $showingPremiumView) {
+                PremiumView()
+            }
         }
     }
 }
@@ -1720,7 +1931,7 @@ struct ChallengeDetailView: View {
     }
     
     private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
+    let formatter = DateFormatter()
         formatter.dateStyle = .medium
         return formatter.string(from: date)
     }
@@ -1729,29 +1940,387 @@ struct ChallengeDetailView: View {
 // MARK: - Content View
 struct ContentView: View {
     @StateObject private var promptStore = PromptStore.shared
+    @StateObject private var premiumManager = PremiumManager.shared
     
     var body: some View {
         TabView {
-            PromptsView()
-                .tabItem {
-                    Image(systemName: "house.fill")
-                    Text("Prompts")
-                }
+            VStack(spacing: 0) {
+                PromptsView()
+                BannerAdContainer()
+            }
+            .tabItem {
+                Image(systemName: "house.fill")
+                Text("Prompts")
+            }
             
-            FavoritesView()
-                .tabItem {
-                    Image(systemName: "heart.fill")
-                    Text("Favorites")
-                }
+            VStack(spacing: 0) {
+                FavoritesView()
+                BannerAdContainer()
+            }
+            .tabItem {
+                Image(systemName: "heart.fill")
+                Text("Favorites")
+            }
             
-            LearnView()
-                .tabItem {
-                    Image(systemName: "book.fill")
-                    Text("Learn")
-                }
+            VStack(spacing: 0) {
+                LearnView()
+                BannerAdContainer()
+            }
+            .tabItem {
+                Image(systemName: "book.fill")
+                Text("Learn")
+            }
         }
         .tint(.pilotBlue)
         .environmentObject(promptStore)
+        .environmentObject(premiumManager)
+    }
+}
+
+// MARK: - Import Prompt View
+struct ImportPromptView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var promptStore: PromptStore
+    @EnvironmentObject var premiumManager: PremiumManager
+    @State private var importText = ""
+    @State private var detectedTitle = ""
+    @State private var detectedCategory = "Business"
+    @State private var detectedTags: [String] = []
+    @State private var detectedAI: [String] = ["ChatGPT", "Claude"]
+    @State private var isProcessing = false
+    @State private var showingPremiumSheet = false
+    
+    private let categories = ["Business", "Writing", "Coding", "Creative", "Education", "Personal", "Marketing", "Health", "Finance", "Google Nano Banana", "Sora 2"]
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Import Prompt")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        
+                        Text("Paste any prompt text and we'll help organize it")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    // Premium Limit Warning
+                    if !premiumManager.isPremium {
+                        let importCount = promptStore.getImportedPromptsCount()
+                        let remainingImports = max(0, PremiumManager.freeImportLimit - importCount)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: remainingImports > 0 ? "info.circle.fill" : "exclamationmark.triangle.fill")
+                                    .foregroundColor(remainingImports > 0 ? .blue : .orange)
+                                
+                                if remainingImports > 0 {
+                                    Text("Free imports remaining: \(remainingImports)/\(PremiumManager.freeImportLimit)")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                } else {
+                                    Text("Import limit reached")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.orange)
+                                }
+                                
+                                Spacer()
+                                
+                                if remainingImports <= 1 {
+                                    Button("Upgrade") {
+                                        showingPremiumSheet = true
+                                    }
+                                    .font(.caption)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.yellow.opacity(0.2))
+                                    .foregroundColor(.orange)
+                                    .cornerRadius(8)
+                                }
+                            }
+                            
+                            if remainingImports == 0 {
+                                Text("Upgrade to Premium for unlimited imports")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding()
+                        .background(remainingImports > 0 ? Color.blue.opacity(0.05) : Color.orange.opacity(0.05))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(remainingImports > 0 ? Color.blue.opacity(0.2) : Color.orange.opacity(0.3), lineWidth: 1)
+                        )
+                    }
+                    
+                    // Import Text Area
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Prompt Text")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                        
+                        TextEditor(text: $importText)
+                            .frame(minHeight: 120)
+                            .padding(12)
+                            .background(Color.gray.opacity(0.05))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.pilotBlue.opacity(0.3), lineWidth: 1)
+                            )
+                            .onChange(of: importText) { _ in
+                                processImportText()
+                            }
+                        
+                        if importText.isEmpty {
+                            Text("Paste your prompt here...")
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .padding(.top, -100)
+                                .allowsHitTesting(false)
+                        }
+                    }
+                    
+                    // Auto-detected Information
+                    if !importText.isEmpty {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Auto-detected Information")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                            
+                            // Title
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Title")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                
+                                TextField("Enter title", text: $detectedTitle)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                            }
+                            
+                            // Category
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Category")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                
+                                Picker("Category", selection: $detectedCategory) {
+                                    ForEach(categories, id: \.self) { category in
+                                        Text(category).tag(category)
+                                    }
+                                }
+                                .pickerStyle(MenuPickerStyle())
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(12)
+                                .background(Color.gray.opacity(0.05))
+                                .cornerRadius(8)
+                            }
+                            
+                            // Tags
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Suggested Tags")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                
+                                LazyVGrid(columns: [
+                                    GridItem(.adaptive(minimum: 80))
+                                ], spacing: 8) {
+                                    ForEach(detectedTags, id: \.self) { tag in
+                                        Text(tag)
+                                            .font(.caption)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(Color.pilotBlue.opacity(0.1))
+                                            .foregroundColor(.pilotBlue)
+                                            .cornerRadius(6)
+                                    }
+                                }
+                            }
+                            
+                            // AI Models
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Recommended AI Models")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                
+                                HStack {
+                                    ForEach(detectedAI, id: \.self) { ai in
+                                        Text(ai)
+                                            .font(.caption)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(Color.green.opacity(0.1))
+                                            .foregroundColor(.green)
+                                            .cornerRadius(6)
+                                    }
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color.pilotBlue.opacity(0.05))
+                        .cornerRadius(12)
+                    }
+                    
+                    // Import Button
+                    Button(action: handleImportTap) {
+                        HStack {
+                            if isProcessing {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "plus.circle.fill")
+                            }
+                            Text(isProcessing ? "Importing..." : "Import Prompt")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(importText.isEmpty ? Color.gray : Color.pilotBlue)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                    }
+                    .disabled(importText.isEmpty || isProcessing)
+                }
+                .padding()
+            }
+            .navigationTitle("Import")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(
+                leading: Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+            )
+        }
+        .sheet(isPresented: $showingPremiumSheet) {
+            PremiumView()
+                .environmentObject(premiumManager)
+        }
+    }
+    
+    private func processImportText() {
+        guard !importText.isEmpty else {
+            detectedTitle = ""
+            detectedTags = []
+            return
+        }
+        
+        // Auto-detect title from first line or common patterns
+        let lines = importText.components(separatedBy: .newlines).filter { !$0.isEmpty }
+        if let firstLine = lines.first {
+            if firstLine.count < 100 && !firstLine.contains("[") {
+                detectedTitle = firstLine.trimmingCharacters(in: .whitespacesAndNewlines)
+            } else {
+                // Extract title from common prompt patterns
+                if importText.lowercased().contains("act as") {
+                    detectedTitle = "Act as Assistant"
+                } else if importText.lowercased().contains("write") {
+                    detectedTitle = "Writing Assistant"
+                } else if importText.lowercased().contains("create") {
+                    detectedTitle = "Creative Assistant"
+                } else {
+                    detectedTitle = "Custom Prompt"
+                }
+            }
+        }
+        
+        // Auto-detect category based on keywords
+        let text = importText.lowercased()
+        if text.contains("business") || text.contains("marketing") || text.contains("sales") || text.contains("meeting") {
+            detectedCategory = "Business"
+        } else if text.contains("code") || text.contains("programming") || text.contains("debug") || text.contains("algorithm") {
+            detectedCategory = "Coding"
+        } else if text.contains("write") || text.contains("blog") || text.contains("article") || text.contains("content") {
+            detectedCategory = "Writing"
+        } else if text.contains("creative") || text.contains("story") || text.contains("character") || text.contains("art") {
+            detectedCategory = "Creative"
+        } else if text.contains("learn") || text.contains("teach") || text.contains("study") || text.contains("education") {
+            detectedCategory = "Education"
+        } else if text.contains("health") || text.contains("fitness") || text.contains("workout") || text.contains("meal") {
+            detectedCategory = "Health"
+        } else if text.contains("money") || text.contains("investment") || text.contains("budget") || text.contains("finance") {
+            detectedCategory = "Finance"
+        } else if text.contains("personal") || text.contains("goal") || text.contains("habit") || text.contains("resume") {
+            detectedCategory = "Personal"
+        } else if text.contains("video") || text.contains("cinematic") || text.contains("camera") || text.contains("shot") || text.contains("scene") || text.contains("sora") {
+            detectedCategory = "Sora 2"
+        } else if text.contains("image") || text.contains("photo") || text.contains("generate") || text.contains("picture") {
+            detectedCategory = "Google Nano Banana"
+        }
+        
+        // Auto-detect tags
+        var tags: [String] = []
+        let commonTags = [
+            "productivity", "creative", "business", "writing", "coding", "analysis",
+            "strategy", "planning", "marketing", "education", "personal", "health"
+        ]
+        
+        for tag in commonTags {
+            if text.contains(tag) {
+                tags.append(tag)
+            }
+        }
+        
+        detectedTags = Array(Set(tags)).prefix(5).map { $0 }
+        
+        // Auto-detect AI models
+        if text.contains("video") || text.contains("cinematic") || text.contains("camera") || text.contains("shot") || text.contains("scene") || text.contains("sora") {
+            detectedAI = ["Sora 2"]
+        } else if text.contains("image") || text.contains("photo") || text.contains("generate picture") {
+            detectedAI = ["Gemini"]
+        } else if text.contains("creative") || text.contains("story") || text.contains("poetry") {
+            detectedAI = ["Claude", "ChatGPT"]
+        } else {
+            detectedAI = ["ChatGPT", "Claude"]
+        }
+    }
+    
+    private func handleImportTap() {
+        let importCount = promptStore.getImportedPromptsCount()
+        
+        if premiumManager.canImportPrompt(currentCount: importCount) {
+            importPrompt()
+        } else {
+            // Track import limit reached
+            MixpanelManager.shared.trackImportLimitReached(currentCount: importCount)
+            showingPremiumSheet = true
+        }
+    }
+    
+    private func importPrompt() {
+        isProcessing = true
+        
+        // Create new prompt
+        let newPrompt = Prompt(
+            title: detectedTitle.isEmpty ? "Imported Prompt" : detectedTitle,
+            content: importText,
+            category: detectedCategory,
+            tags: detectedTags,
+            recommendedAI: detectedAI
+        )
+        
+        // Track imported prompt
+        MixpanelManager.shared.trackPromptImported(
+            promptId: newPrompt.id.uuidString,
+            promptTitle: newPrompt.title,
+            category: newPrompt.category,
+            method: "manual"
+        )
+        
+        // Add to prompt store using the new tracking method
+        promptStore.addImportedPrompt(newPrompt)
+        
+        // Add slight delay for better UX
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            isProcessing = false
+            presentationMode.wrappedValue.dismiss()
+        }
     }
 }
 

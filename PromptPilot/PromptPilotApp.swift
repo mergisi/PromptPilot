@@ -7,7 +7,7 @@
 
 import SwiftUI
 import Clarity
-// import GoogleMobileAds // TODO: Add back when GoogleMobileAds package is resolved
+import GoogleMobileAds
 
 @main
 struct PromptPilotApp: App {
@@ -19,7 +19,8 @@ struct PromptPilotApp: App {
         ClaritySDK.initialize(config: clarityConfig)
         
         // Initialize Google Mobile Ads SDK
-        // GADMobileAds.sharedInstance().start(completionHandler: nil) // TODO: Uncomment when GoogleMobileAds is added
+        // Note: AdMob initialization will be handled when ads are first loaded
+        print("App initialized - AdMob will initialize on first ad load")
         
         // Track app launch
         MixpanelManager.shared.trackAppLaunched()

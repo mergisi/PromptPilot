@@ -9,11 +9,13 @@ import Foundation
 
 struct AdMobConfiguration {
     // MARK: - Configuration
-    // TODO: Replace with your actual AdMob Ad Unit IDs from https://admob.google.com
-    // NOTE: This is currently an APP ID (ends with ~), you need AD UNIT ID (ends with /)
-    static let bannerAdUnitID = "ca-app-pub-3940256099942544/2934735716" // Google TEST Ad Unit ID - for testing only!
+    // Your App ID (for Info.plist - ends with ~)
+    static let appID = "ca-app-pub-5223337070047795~9361812948"
     
-    // Your App ID (for Info.plist): ca-app-pub-5223337070047795~9361812948
+    // Ad Unit IDs (ends with /) - Replace with your actual Ad Unit IDs from AdMob console
+    // You need to create a Banner Ad Unit in AdMob console to get this ID
+    static let bannerAdUnitID = "ca-app-pub-5223337070047795/5230996241" // Using test ID until you create real ad unit
+    // Your App ID: ca-app-pub-5223337070047795~9361812948 (This is NOT an Ad Unit ID)
     
     // Optional: Different ad units for different placements
     static let homeTabBannerID = "xxxxxxxx" // Optional: specific for home tab
@@ -21,7 +23,7 @@ struct AdMobConfiguration {
     static let learnTabBannerID = "xxxxxxxx" // Optional: specific for learn tab
     
     // Test Ad Unit IDs (Google's official test IDs)
-    static let testBannerAdUnitID = "ca-app-pub-5223337070047795~9361812948"
+    static let testBannerAdUnitID = "ca-app-pub-5223337070047795/5230996241" // iOS Banner test ID
     
     // MARK: - Ad Unit Selection
     static var primaryBannerAdUnitID: String {

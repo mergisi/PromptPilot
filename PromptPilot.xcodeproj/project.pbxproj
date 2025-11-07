@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1D7D41812E4B356800BFF451 /* Clarity in Frameworks */ = {isa = PBXBuildFile; productRef = 1D7D41802E4B356800BFF451 /* Clarity */; };
 		1D7D41842E4B356900BFF451 /* Mixpanel in Frameworks */ = {isa = PBXBuildFile; productRef = 1D7D41832E4B356900BFF451 /* Mixpanel */; };
+		1D7D41862E4B357100BFF451 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 1D7D41872E4B357200BFF451 /* GoogleMobileAds */; };
 		1D9887CD2E64FFB600A523E7 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D9887CC2E64FFB600A523E7 /* StoreKit.framework */; };
 		1DAC7CA52E6651B600D98B03 /* PromptPilotStore.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 1DAC7CA42E6651B600D98B03 /* PromptPilotStore.storekit */; };
 		1DAC7CA62E6651B700D98B03 /* Untitled.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DAC7CA32E66517A00D98B03 /* Untitled.swift */; };
@@ -40,9 +41,22 @@
 		1DAC7CA42E6651B600D98B03 /* PromptPilotStore.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = PromptPilotStore.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1D1889BC2EBE259E00D67E66 /* Exceptions for "PromptPilot" folder in "PromptPilot" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1D76C4622E401F22009481A3 /* PromptPilot */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1D76C4652E401F22009481A3 /* PromptPilot */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1D1889BC2EBE259E00D67E66 /* Exceptions for "PromptPilot" folder in "PromptPilot" target */,
+			);
 			path = PromptPilot;
 			sourceTree = "<group>";
 		};
@@ -65,6 +79,7 @@
 			files = (
 				1D7D41812E4B356800BFF451 /* Clarity in Frameworks */,
 				1D7D41842E4B356900BFF451 /* Mixpanel in Frameworks */,
+				1D7D41862E4B357100BFF451 /* GoogleMobileAds in Frameworks */,
 				1D9887CD2E64FFB600A523E7 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -225,6 +240,7 @@
 			packageReferences = (
 				1D7D417E2E4B355700BFF451 /* XCRemoteSwiftPackageReference "clarity-apps" */,
 				1D7D41822E4B356900BFF451 /* XCRemoteSwiftPackageReference "mixpanel-swift" */,
+				1D1889BD2EBE27FF00D67E66 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1D76C4642E401F22009481A3 /* Products */;
@@ -433,6 +449,7 @@
 				DEVELOPMENT_TEAM = A34739LVZN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PromptPilot/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -462,6 +479,7 @@
 				DEVELOPMENT_TEAM = A34739LVZN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PromptPilot/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -595,6 +613,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		1D1889BD2EBE27FF00D67E66 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.13.0;
+			};
+		};
 		1D7D417E2E4B355700BFF451 /* XCRemoteSwiftPackageReference "clarity-apps" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/microsoft/clarity-apps";
@@ -611,6 +637,14 @@
 				minimumVersion = 4.2.0;
 			};
 		};
+		1D7D41852E4B357000BFF451 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -623,6 +657,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1D7D41822E4B356900BFF451 /* XCRemoteSwiftPackageReference "mixpanel-swift" */;
 			productName = Mixpanel;
+		};
+		1D7D41872E4B357200BFF451 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1D7D41852E4B357000BFF451 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

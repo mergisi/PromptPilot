@@ -6,45 +6,26 @@
 //
 
 import SwiftUI
-// import GoogleMobileAds // TODO: Add back when GoogleMobileAds package is resolved
+import GoogleMobileAds
 import UIKit
 
 // Use the centralized configuration
 typealias AdMobConfig = AdMobConfiguration
 
-// MARK: - SwiftUI AdMob Banner View (Placeholder until GoogleMobileAds is added)
+// MARK: - SwiftUI AdMob Banner View
 struct AdMobBannerView: UIViewRepresentable {
     let adUnitID: String
-    // let adSize: GADAdSize // TODO: Uncomment when GoogleMobileAds is added
+    let adSize: AdSize
     
-    init(adUnitID: String = AdMobConfig.primaryBannerAdUnitID) { // , adSize: GADAdSize = GADAdSizeBanner
+    init(adUnitID: String = AdMobConfig.primaryBannerAdUnitID, adSize: AdSize = AdSizeBanner) {
         self.adUnitID = adUnitID
-        // self.adSize = adSize
+        self.adSize = adSize
     }
     
-    func makeUIView(context: Context) -> UIView { // GADBannerView
-        // TODO: Replace with GADBannerView when GoogleMobileAds is added
-        let placeholderView = UIView()
-        placeholderView.backgroundColor = UIColor.systemGray6
-        
-        let label = UILabel()
-        label.text = "Ad Placeholder"
-        label.textAlignment = .center
-        label.textColor = UIColor.systemGray
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        placeholderView.addSubview(label)
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: placeholderView.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: placeholderView.centerYAnchor)
-        ])
-        
-        return placeholderView
-        
-        /*
-        // TODO: Uncomment when GoogleMobileAds is added - Based on your UIKit implementation
-        let bannerView = GADBannerView(adSize: GADAdSizeBanner)
-        bannerView.adUnitID = adUnitID // Using your format: "ca-app-pub-1234567890123456/1122334455"
+    func makeUIView(context: Context) -> BannerView {
+        // Create the banner view with the specified ad size
+        let bannerView = BannerView(adSize: adSize)
+        bannerView.adUnitID = adUnitID
         
         // Get the root view controller (SwiftUI compatible way)
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -54,56 +35,52 @@ struct AdMobBannerView: UIViewRepresentable {
         
         bannerView.delegate = context.coordinator
         
-        // Load the ad (following your pattern)
-        bannerView.load(GADRequest())
+        // Load the ad
+        bannerView.load(Request())
         
         return bannerView
-        */
     }
     
-    func updateUIView(_ uiView: UIView, context: Context) { // GADBannerView
-        // Update if needed
+    func updateUIView(_ uiView: BannerView, context: Context) {
+        // Update if needed - could refresh ad here if needed
     }
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
     
-    // MARK: - Coordinator (Placeholder until GoogleMobileAds is added)
-    class Coordinator: NSObject { // , GADBannerViewDelegate
+    // MARK: - Coordinator
+    class Coordinator: NSObject, BannerViewDelegate {
         let parent: AdMobBannerView
         
         init(_ parent: AdMobBannerView) {
             self.parent = parent
         }
         
-        /*
-        // TODO: Uncomment when GoogleMobileAds is added
-        // MARK: - GADBannerViewDelegate
-        func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
+        // MARK: - BannerViewDelegate
+        func bannerViewDidReceiveAd(_ bannerView: BannerView) {
             print("✅ AdMob Banner: Ad loaded successfully")
         }
         
-        func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
+        func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
             print("❌ AdMob Banner: Failed to load ad - \(error.localizedDescription)")
         }
         
-        func bannerViewDidRecordImpression(_ bannerView: GADBannerView) {
+        func bannerViewDidRecordImpression(_ bannerView: BannerView) {
             print("📊 AdMob Banner: Ad impression recorded")
         }
         
-        func bannerViewWillPresentScreen(_ bannerView: GADBannerView) {
+        func bannerViewWillPresentScreen(_ bannerView: BannerView) {
             print("📱 AdMob Banner: Will present screen")
         }
         
-        func bannerViewWillDismissScreen(_ bannerView: GADBannerView) {
+        func bannerViewWillDismissScreen(_ bannerView: BannerView) {
             print("📱 AdMob Banner: Will dismiss screen")
         }
         
-        func bannerViewDidDismissScreen(_ bannerView: GADBannerView) {
+        func bannerViewDidDismissScreen(_ bannerView: BannerView) {
             print("📱 AdMob Banner: Did dismiss screen")
         }
-        */
     }
 }
 
@@ -133,8 +110,7 @@ struct BannerAdContainer: View {
     }
 }
 
-/*
-// MARK: - Smart Banner (Adaptive) - TODO: Uncomment when GoogleMobileAds is added
+// MARK: - Smart Banner (Adaptive)
 struct AdMobSmartBannerView: UIViewRepresentable {
     let adUnitID: String
     
@@ -142,20 +118,26 @@ struct AdMobSmartBannerView: UIViewRepresentable {
         self.adUnitID = adUnitID
     }
     
-    func makeUIView(context: Context) -> GADBannerView {
-        let bannerView = GADBannerView(adSize: GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(UIScreen.main.bounds.width))
+    func makeUIView(context: Context) -> BannerView {
+        let bannerView = BannerView(adSize: currentOrientationAnchoredAdaptiveBanner(width: UIScreen.main.bounds.width))
         bannerView.adUnitID = adUnitID
-        bannerView.rootViewController = UIApplication.shared.windows.first?.rootViewController
+        
+        // Get the root view controller (SwiftUI compatible way)
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first?.rootViewController {
+            bannerView.rootViewController = rootViewController
+        }
+        
         bannerView.delegate = context.coordinator
         
         // Load the ad
-        let request = GADRequest()
+        let request = Request()
         bannerView.load(request)
         
         return bannerView
     }
     
-    func updateUIView(_ uiView: GADBannerView, context: Context) {
+    func updateUIView(_ uiView: BannerView, context: Context) {
         // Update if needed
     }
     
@@ -163,7 +145,6 @@ struct AdMobSmartBannerView: UIViewRepresentable {
         AdMobBannerView.Coordinator(AdMobBannerView())
     }
 }
-*/
 
 // MARK: - Preview
 struct AdMobBannerView_Previews: PreviewProvider {
